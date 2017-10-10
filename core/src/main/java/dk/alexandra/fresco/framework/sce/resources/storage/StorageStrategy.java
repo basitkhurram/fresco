@@ -44,4 +44,14 @@ public enum StorageStrategy {
         return null;
     }
   }
+  
+  public static Storage fromEnum(StorageStrategy strategy) {
+    switch(strategy) {
+      case IN_MEMORY:
+        return new InMemoryStorage();
+      case STREAMED_STORAGE:
+        return new FilebasedStreamedStorageImpl(new InMemoryStorage());
+      default: throw new IllegalArgumentException("Strategy "+ strategy +" is unkown");
+    }
+  }
 }

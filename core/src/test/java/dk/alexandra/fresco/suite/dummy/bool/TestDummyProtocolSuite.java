@@ -52,6 +52,8 @@ public class TestDummyProtocolSuite
   public void test_basic_logic() throws Exception {
     runTest(new BasicBooleanTests.TestInput<>(true), EvaluationStrategy.SEQUENTIAL,
         NetworkingStrategy.KRYONET);
+    runTest(new BasicBooleanTests.TestRandomBitOutputToSingle<>(true), EvaluationStrategy.SEQUENTIAL,
+        NetworkingStrategy.KRYONET);
     runTest(new BasicBooleanTests.TestXOR<>(true), EvaluationStrategy.SEQUENTIAL,
         NetworkingStrategy.KRYONET);
     runTest(new BasicBooleanTests.TestAND<>(true), EvaluationStrategy.SEQUENTIAL,

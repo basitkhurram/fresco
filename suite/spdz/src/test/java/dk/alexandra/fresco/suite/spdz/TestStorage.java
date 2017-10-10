@@ -34,6 +34,7 @@ import dk.alexandra.fresco.framework.sce.resources.storage.exceptions.NoMoreElem
 import dk.alexandra.fresco.suite.spdz.datatypes.SpdzElement;
 import dk.alexandra.fresco.suite.spdz.datatypes.SpdzTriple;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import org.junit.Assert;
@@ -72,7 +73,12 @@ public class TestStorage {
 
   private void testStreamedStorage(StreamedStorage storage) throws NoMoreElementsException {
     storage.putNext("testName", BigInteger.TEN);
-    Serializable o = storage.getNext("testName");
+    Serializable o = null;
+    try {
+      o = storage.getNext("testName");
+    } catch (FileNotFoundException e) {
+      Assert.fail("Storage file should be available");
+    }
     Assert.assertEquals(BigInteger.TEN, o);
   }
 

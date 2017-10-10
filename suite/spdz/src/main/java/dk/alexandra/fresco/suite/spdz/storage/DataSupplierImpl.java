@@ -32,6 +32,7 @@ import dk.alexandra.fresco.framework.sce.resources.storage.exceptions.NoMoreElem
 import dk.alexandra.fresco.suite.spdz.datatypes.SpdzInputMask;
 import dk.alexandra.fresco.suite.spdz.datatypes.SpdzSInt;
 import dk.alexandra.fresco.suite.spdz.datatypes.SpdzTriple;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +85,7 @@ public class DataSupplierImpl implements DataSupplier {
 		try {
 			trip = this.storage.getNext(storageName+
 					SpdzStorageConstants.TRIPLE_STORAGE);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
       logger.warn("Triple no. " + tripleCounter + " was not present in the storage " + storageName);
       return null;
 		}		
@@ -97,7 +98,7 @@ public class DataSupplierImpl implements DataSupplier {
 		SpdzSInt[] expPipe;
 		try {
 			expPipe = this.storage.getNext(storageName+SpdzStorageConstants.EXP_PIPE_STORAGE);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
       logger
           .warn("expPipe no. " + expPipeCounter + " was not present in the storage" + storageName);
       return null;
@@ -112,7 +113,7 @@ public class DataSupplierImpl implements DataSupplier {
 		try {
 			mask = this.storage.getNext(storageName +
 					SpdzStorageConstants.INPUT_STORAGE + towardPlayerID);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
       logger.warn(
           "Mask no. " + inputMaskCounters[towardPlayerID - 1] + " towards player " + towardPlayerID
               + " was not present in the storage " + (storageName
@@ -129,7 +130,7 @@ public class DataSupplierImpl implements DataSupplier {
 		try {
 			bit = this.storage.getNext(storageName + 
 					SpdzStorageConstants.BIT_STORAGE);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
       logger.warn("Bit no. " + bitCounter + " was not present in the storage " + storageName);
       return null;
 		}
@@ -145,7 +146,7 @@ public class DataSupplierImpl implements DataSupplier {
 		try {
 			this.mod = this.storage.getNext(storageName +
 					SpdzStorageConstants.MODULUS_KEY);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
 			throw new MPCException("Modulus was not present in the storage "+ storageName);
 		}		
 		return this.mod;
@@ -159,7 +160,7 @@ public class DataSupplierImpl implements DataSupplier {
 		try {
 			this.ssk = this.storage.getNext(storageName+
 					SpdzStorageConstants.SSK_KEY);
-		} catch (NoMoreElementsException e) {
+		} catch (NoMoreElementsException | FileNotFoundException e) {
 			throw new MPCException("SSK was not present in the storage "+ storageName);
 		}
 		return this.ssk;

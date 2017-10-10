@@ -12,7 +12,7 @@ public class BitVector {
   private int size;
 	
 	public BitVector(boolean[] vector) {
-		BitSetUtils.fromArray(vector);
+		this.bits = BitSetUtils.fromArray(vector);
 		this.size = vector.length;
 	}
 	
@@ -23,6 +23,7 @@ public class BitVector {
 	
 	public BitVector(int size) {
 		this.bits = new BitSet(size);
+		this.size = size;
 	}
 	
 	public int getSize() {

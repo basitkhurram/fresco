@@ -57,8 +57,12 @@ public class BinaryMatrix {
 	 * @param j
 	 * @return
 	 */
-	public boolean get(int i, int j) {
-		return bits.get(getIndex(i, j));
+	public boolean get(int i, int j) throws IndexOutOfBoundsException{
+	  int inx = getIndex(i, j);
+	  if(inx >= getHeight()*getWidth()) {
+	    throw new IndexOutOfBoundsException("Index cannot be reached");
+	  }
+		return bits.get(inx);
 	}
 
 	/**

@@ -71,6 +71,39 @@ public class BasicBooleanTests {
       };
     }
   }
+  
+  public static class TestRandomBitOutputToSingle<ResourcePoolT extends ResourcePool>
+      extends TestThreadFactory<ResourcePoolT, ProtocolBuilderBinary> {
+
+    private boolean doAsserts;
+
+    public TestRandomBitOutputToSingle(boolean doAsserts) {
+      this.doAsserts = doAsserts;
+    }
+
+    @Override
+    public TestThread<ResourcePoolT, ProtocolBuilderBinary> next() {
+      return new TestThread<ResourcePoolT, ProtocolBuilderBinary>() {
+        @Override
+        public void test() throws Exception {
+          Application<Boolean, ProtocolBuilderBinary> app = producer -> producer.seq(seq -> {
+            DRes<SBool> in = seq.binary().randomBit();
+            DRes<Boolean> open = seq.binary().open(in, 1);
+            return open;
+          }).seq((seq, out) -> {
+            return () -> out;
+          });
+
+          boolean output = secureComputationEngine.runApplication(app,
+              ResourcePoolCreator.createResourcePool(conf.sceConf));
+
+          if (doAsserts) {
+            Assert.assertTrue(output == false || output == true);
+          }
+        }
+      };
+    }
+  }
 
   public static class TestXOR<ResourcePoolT extends ResourcePool>
       extends TestThreadFactory<ResourcePoolT, ProtocolBuilderBinary> {
