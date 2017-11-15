@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
 
 import dk.alexandra.fresco.demo.cli.CmdLineUtil;
 import dk.alexandra.fresco.framework.Application;
@@ -48,15 +47,15 @@ public class FrescoTutorial {
       throws IOException {
     // input
     BigInteger[][] rows = {{BigInteger.valueOf(1), BigInteger.valueOf(2)},
-        {BigInteger.valueOf(1), BigInteger.valueOf(4)},
+        {BigInteger.valueOf(2), BigInteger.valueOf(4)},
         {BigInteger.valueOf(1), BigInteger.valueOf(6)},
-        {BigInteger.valueOf(1), BigInteger.valueOf(8)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(10)},
+        {BigInteger.valueOf(2), BigInteger.valueOf(8)},
+        {BigInteger.valueOf(1), BigInteger.valueOf(10)},
         {BigInteger.valueOf(2), BigInteger.valueOf(12)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(14)},
+        {BigInteger.valueOf(1), BigInteger.valueOf(14)},
         {BigInteger.valueOf(2), BigInteger.valueOf(16)}};
     Matrix<BigInteger> inputMatrix = toMatrix(rows);
-    // define application
+    // define application (also works as a lambda expression)
     Application<Matrix<BigInteger>, ProtocolBuilderNumeric> app = root -> {
       DRes<Matrix<DRes<SInt>>> closedMatrix = null;
       if (root.getBasicNumericContext().getMyId() == 1) {
@@ -85,36 +84,34 @@ public class FrescoTutorial {
     rp.getNetwork().close();
   }
 
-  public static <ResourcePoolT extends ResourcePool> void runSumApp(
+  public static <ResourcePoolT extends ResourcePool> void runReactiveApp(
       SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
       throws IOException {
-    // get some user input
-    Scanner reader = new Scanner(System.in);
-    System.out.println("Enter a number: ");
-    final BigInteger myInput = BigInteger.valueOf(reader.nextInt());
-    reader.close();
-    System.out.println("Will run as party " + rp.getMyId() + " with input " + myInput);
-    // define application
-    Application<BigInteger, ProtocolBuilderNumeric> app = root -> {
-      // input phase
-      DRes<SInt> inputPartyOne = null;
-      DRes<SInt> inputPartyTwo = null;
-      if (root.getBasicNumericContext().getMyId() == 1) {
-        // player one provides first input and receives second input
-        inputPartyOne = root.numeric().input(myInput, 1);
-        inputPartyTwo = root.numeric().input(null, 2);
-      } else {
-        // player receives first input and provides second input
-        inputPartyOne = root.numeric().input(null, 1);
-        inputPartyTwo = root.numeric().input(myInput, 2);
-      }
-      // sum
-      DRes<SInt> sum = root.numeric().add(inputPartyOne, inputPartyTwo);
-      // prod
-      DRes<SInt> prod = root.numeric().mult(sum, sum);
-      // open result to all parties
-      return root.numeric().open(prod);
-    };
+    Application<BigInteger, ProtocolBuilderNumeric> app = new ReactiveApp();
+    // connect to other parties
+    rp.getNetwork().connect(10000);
+    // run application and retrieve result
+    BigInteger result = sce.runApplication(app, rp);
+    System.out.println("Result is: " + result);
+    // shutdown
+    sce.shutdownSCE();
+    rp.getNetwork().close();
+  }
+
+  public static <ResourcePoolT extends ResourcePool> void runSumAndSquareApp(
+      SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
+      throws IOException {
+    /*
+     * Here we define our application. An application is parameterized with a return type
+     * (BigInteger) and a builder type (ProtocolBuilderNumeric).
+     * 
+     * An application can be defined as a concrete class or as a lambda expression.
+     * 
+     * Fresco will instantiate a new ProtocolBuilder of the type provided (ProtocolBuilderNumeric)
+     * and pass that to the buildComputation method of the Application.
+     * 
+     */
+    Application<BigInteger, ProtocolBuilderNumeric> app = new SumAndSquareApp();
     // connect to other parties
     rp.getNetwork().connect(10000);
     // run application and retrieve result
@@ -138,7 +135,8 @@ public class FrescoTutorial {
 
     // resource pool contains network
     ResourcePoolT resourcePool = util.getResourcePool();
-    runSumApp(sce, resourcePool);
+    runSumAndSquareApp(sce, resourcePool);
+    // runReactiveApp(sce, resourcePool);
     // runAggApp(sce, resourcePool);
   }
 
