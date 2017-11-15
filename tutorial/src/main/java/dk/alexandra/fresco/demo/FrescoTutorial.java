@@ -136,8 +136,6 @@ public class FrescoTutorial {
     // resource pool contains network
     ResourcePoolT resourcePool = util.getResourcePool();
     runSumAndSquareApp(sce, resourcePool);
-    // runReactiveApp(sce, resourcePool);
-    // runAggApp(sce, resourcePool);
   }
 
 }
