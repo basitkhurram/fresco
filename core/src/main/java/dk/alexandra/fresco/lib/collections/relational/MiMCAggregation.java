@@ -78,8 +78,10 @@ public class MiMCAggregation implements Computation<Matrix<DRes<SInt>>, Protocol
           DRes<SInt> subTotal = seq.numeric().add(groupedByCipher.get(cipher), value);
           groupedByCipher.put(cipher, subTotal);
         }
-      }
+      } ;
       return () -> toMatrix(groupedByCipher, cipherToShare);
+    }).par((par, mat) -> {
+      return par.collections().shuffle(() -> mat);
     });
   }
 

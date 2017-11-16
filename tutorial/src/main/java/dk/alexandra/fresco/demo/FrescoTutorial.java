@@ -3,11 +3,14 @@ package dk.alexandra.fresco.demo;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import dk.alexandra.fresco.demo.cli.CmdLineUtil;
 import dk.alexandra.fresco.framework.Application;
 import dk.alexandra.fresco.framework.DRes;
+import dk.alexandra.fresco.framework.builder.numeric.Numeric;
 import dk.alexandra.fresco.framework.builder.numeric.ProtocolBuilderNumeric;
 import dk.alexandra.fresco.framework.sce.SecureComputationEngine;
 import dk.alexandra.fresco.framework.sce.SecureComputationEngineImpl;
@@ -19,12 +22,15 @@ import dk.alexandra.fresco.suite.ProtocolSuite;
 
 public class FrescoTutorial {
 
-  public static <T> Matrix<T> toMatrix(T[][] rows) {
+  public static Matrix<BigInteger> toMatrix(int[][] rows) {
     int h = rows.length;
     int w = rows[0].length;
-    ArrayList<ArrayList<T>> mat = new ArrayList<>();
-    for (T[] row : rows) {
-      mat.add(new ArrayList<>(Arrays.asList(row)));
+    ArrayList<ArrayList<BigInteger>> mat = new ArrayList<>();
+    for (int[] row : rows) {
+      ArrayList<BigInteger> convertedRow =
+          IntStream.range(0, w).mapToObj(idx -> BigInteger.valueOf(row[idx]))
+              .collect(Collectors.toCollection(ArrayList::new));
+      mat.add(new ArrayList<>(convertedRow));
     }
     return new Matrix<>(h, w, mat);
   }
@@ -42,18 +48,57 @@ public class FrescoTutorial {
     return new Matrix<>(numRows, numCols, mat);
   }
 
+  public static <ResourcePoolT extends ResourcePool> void runParallelMult(
+      SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
+      throws IOException {
+    int listSize = 100000;
+    List<BigInteger> input = IntStream.range(0, listSize).mapToObj(idx -> BigInteger.valueOf(idx))
+        .collect(Collectors.toList());
+
+    Application<List<BigInteger>, ProtocolBuilderNumeric> app = root -> {
+      DRes<List<DRes<SInt>>> leftClosed = root.collections().closeList(input, 1);
+      DRes<List<DRes<SInt>>> rightClosed = root.collections().closeList(input, 1);
+      return root.par(par -> {
+        List<DRes<SInt>> lout = leftClosed.out();
+        List<DRes<SInt>> rout = rightClosed.out();
+        List<DRes<SInt>> products = new ArrayList<>(lout.size());
+        Numeric numericBuilder = par.numeric();
+        for (int i = 0; i < lout.size(); i++) {
+          DRes<SInt> nextA = lout.get(i);
+          DRes<SInt> nextB = rout.get(i);
+          products.add(numericBuilder.mult(nextA, nextB));
+        }
+        return () -> products;
+      }).par((subpar, prods) -> {
+        DRes<List<DRes<BigInteger>>> opened = subpar.collections().openList(() -> prods);
+        return () -> opened.out().stream().map(el -> el.out()).collect(Collectors.toList());
+      });
+    };
+
+    // connect to other parties
+    rp.getNetwork().connect(10000);
+    // run application and retrieve result
+    List<BigInteger> result = sce.runApplication(app, rp);
+    System.out.println("Result is: " + result.size());
+    // shutdown
+    sce.shutdownSCE();
+    rp.getNetwork().close();
+  }
+
   public static <ResourcePoolT extends ResourcePool> void runAggApp(
       SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
       throws IOException {
     // input
-    BigInteger[][] rows = {{BigInteger.valueOf(1), BigInteger.valueOf(2)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(4)},
-        {BigInteger.valueOf(1), BigInteger.valueOf(6)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(8)},
-        {BigInteger.valueOf(1), BigInteger.valueOf(10)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(12)},
-        {BigInteger.valueOf(1), BigInteger.valueOf(14)},
-        {BigInteger.valueOf(2), BigInteger.valueOf(16)}};
+    int[][] rows = {
+        {1, 2}, 
+        {2, 4}, 
+        {1, 6}, 
+        {2, 8}, 
+        {1, 10}, 
+        {2, 12}, 
+        {1, 14}, 
+        {2, 16}
+    };
     Matrix<BigInteger> inputMatrix = toMatrix(rows);
     // define application (also works as a lambda expression)
     Application<Matrix<BigInteger>, ProtocolBuilderNumeric> app = root -> {
@@ -123,6 +168,7 @@ public class FrescoTutorial {
   }
 
   public static <ResourcePoolT extends ResourcePool> void main(String[] args) throws IOException {
+    // parse command line configuration
     CmdLineUtil<ResourcePoolT, ProtocolBuilderNumeric> util = new CmdLineUtil<>();
     util.parse(args);
 
@@ -135,7 +181,7 @@ public class FrescoTutorial {
 
     // resource pool contains network
     ResourcePoolT resourcePool = util.getResourcePool();
-    runSumAndSquareApp(sce, resourcePool);
+    runAggApp(sce, resourcePool);
   }
 
 }
