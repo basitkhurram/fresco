@@ -39,17 +39,15 @@ public class SumAndSquareApp implements Application<BigInteger, ProtocolBuilderN
 
     /*
      * The way to define new computations is by using a protocol builder. A protocol builder gives
-     * us access to all of the computations available in FRESCO.
-     * 
-     * These are exposed via computation directories. A computation directory is conceptually like a
-     * Java package. It contains related computations. For instance, the Numeric computation
-     * directory contains basic arithmetic operators such as addition, the Collections computation
-     * directory contains list and matrix operations etc.
+     * us access to all of the computations available in FRESCO. These are exposed via computation
+     * directories. A computation directory is conceptually like a Java package. It contains related
+     * computations. For instance, the Numeric computation directory contains basic arithmetic
+     * operators such as addition, the Collections computation directory contains list and matrix
+     * operations etc.
      */
     // we only need basic numeric functionality for this app
     Numeric numericCompDir = builder.numeric();
 
-    // each party provides its input to the MPC
     // the basic arithmetic data type is an SInt
     DRes<SInt> inputPartyOne = null;
     DRes<SInt> inputPartyTwo = null;
@@ -76,7 +74,7 @@ public class SumAndSquareApp implements Application<BigInteger, ProtocolBuilderN
   private BigInteger getUserInput(Integer partyId) {
     // read some user input from console
     Scanner reader = new Scanner(System.in);
-    System.out.println("Enter your input: ");
+    System.out.print("Enter your input: ");
     final BigInteger myInput = BigInteger.valueOf(reader.nextInt());
     reader.close();
     return myInput;

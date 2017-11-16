@@ -35,10 +35,12 @@ public class ReactiveApp implements Application<BigInteger, ProtocolBuilderNumer
     // get input from user
     final BigInteger myInput = getUserInput(myPartyId);
     System.out.println("Will run as party " + myPartyId + " with input " + myInput);
+
     // basic numeric functionality
     Numeric numericCompDir = builder.numeric();
     // comparison functionality
     Comparison comparisonCompDir = builder.comparison();
+
     // each party provides its input to the MPC
     final DRes<SInt> inputPartyOne =
         myPartyId == 1 ? numericCompDir.input(myInput, 1) : numericCompDir.input(null, 1);
@@ -47,7 +49,7 @@ public class ReactiveApp implements Application<BigInteger, ProtocolBuilderNumer
     // equals
     DRes<SInt> equalsFlag = comparisonCompDir.equals(inputPartyOne, inputPartyTwo);
     DRes<BigInteger> openedEqualsFlag = numericCompDir.open(equalsFlag);
-    // this will break!
+    // this would break since the result has not been computed yet!
     // BigInteger res = openedEqualsFlag.out();
     // can only access value in sub-scope, otherwise it might be unavailable!
     return builder.seq((subBuilder) -> {
