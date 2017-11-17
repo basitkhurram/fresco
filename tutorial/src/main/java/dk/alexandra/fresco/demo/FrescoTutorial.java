@@ -3,6 +3,7 @@ package dk.alexandra.fresco.demo;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -10,7 +11,6 @@ import java.util.stream.IntStream;
 import dk.alexandra.fresco.demo.cli.CmdLineUtil;
 import dk.alexandra.fresco.framework.Application;
 import dk.alexandra.fresco.framework.DRes;
-import dk.alexandra.fresco.framework.builder.numeric.Numeric;
 import dk.alexandra.fresco.framework.builder.numeric.ProtocolBuilderNumeric;
 import dk.alexandra.fresco.framework.sce.SecureComputationEngine;
 import dk.alexandra.fresco.framework.sce.SecureComputationEngineImpl;
@@ -51,27 +51,43 @@ public class FrescoTutorial {
   public static <ResourcePoolT extends ResourcePool> void runParallelMult(
       SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
       throws IOException {
-    int listSize = 100000;
+
+    int batchSize = 10000;
+    int listSize = 1000000;
+    int batchIdx = 0;
+    int batchNum = listSize / batchSize;
     List<BigInteger> input = IntStream.range(0, listSize).mapToObj(idx -> BigInteger.valueOf(idx))
         .collect(Collectors.toList());
 
     Application<List<BigInteger>, ProtocolBuilderNumeric> app = root -> {
-      DRes<List<DRes<SInt>>> leftClosed = root.collections().closeList(input, 1);
-      DRes<List<DRes<SInt>>> rightClosed = root.collections().closeList(input, 1);
-      return root.par(par -> {
-        List<DRes<SInt>> lout = leftClosed.out();
-        List<DRes<SInt>> rout = rightClosed.out();
-        List<DRes<SInt>> products = new ArrayList<>(lout.size());
-        Numeric numericBuilder = par.numeric();
-        for (int i = 0; i < lout.size(); i++) {
-          DRes<SInt> nextA = lout.get(i);
-          DRes<SInt> nextB = rout.get(i);
-          products.add(numericBuilder.mult(nextA, nextB));
-        }
-        return () -> products;
-      }).par((subpar, prods) -> {
-        DRes<List<DRes<BigInteger>>> opened = subpar.collections().openList(() -> prods);
+      DRes<List<DRes<SInt>>> chunckLeftClosed = root.collections().closeList(input, 1);
+      DRes<List<DRes<SInt>>> chunckRightClosed = root.collections().closeList(input, 1);
+      return root.par(new PairwiseProd(chunckLeftClosed, chunckRightClosed)).seq((seq, res) -> {
+        DRes<List<DRes<BigInteger>>> opened = seq.collections().openList(() -> res);
         return () -> opened.out().stream().map(el -> el.out()).collect(Collectors.toList());
+      });
+    };
+
+    Application<List<BigInteger>, ProtocolBuilderNumeric> appOther = root -> {
+      return root.seq(seq -> {
+        return new IterationState(batchIdx, () -> new LinkedList<DRes<SInt>>());
+      }).whileLoop((state) -> state.getRound() < batchNum, (seq, state) -> {
+        int round = state.getRound();
+        int start = state.getRound() * batchSize;
+        int end = (state.getRound() + 1) * batchSize;
+        System.out.println(round + " " + start + " " + end);
+        List<BigInteger> chunckLeft = input.subList(start, end);
+        List<BigInteger> chunckRight = input.subList(start, end);
+        DRes<List<DRes<SInt>>> chunckLeftClosed = seq.collections().closeList(chunckLeft, 1);
+        DRes<List<DRes<SInt>>> chunckRightClosed = seq.collections().closeList(chunckRight, 1);
+        DRes<List<DRes<SInt>>> pairwise =
+            seq.par(new PairwiseProd(chunckLeftClosed, chunckRightClosed));
+        return new IterationState(round + 1, pairwise);
+      }).seq((seq, state) -> {
+        DRes<List<DRes<SInt>>> result = state.out().getIntermediate();
+        return seq.collections().openList(result);
+      }).seq((seq, res) -> {
+        return () -> res.stream().map(el -> el.out()).collect(Collectors.toList());
       });
     };
 
@@ -89,16 +105,7 @@ public class FrescoTutorial {
       SecureComputationEngine<ResourcePoolT, ProtocolBuilderNumeric> sce, ResourcePoolT rp)
       throws IOException {
     // input
-    int[][] rows = {
-        {1, 2}, 
-        {2, 4}, 
-        {1, 6}, 
-        {2, 8}, 
-        {1, 10}, 
-        {2, 12}, 
-        {1, 14}, 
-        {2, 16}
-    };
+    int[][] rows = {{1, 2}, {2, 4}, {1, 6}, {2, 8}, {1, 10}, {2, 12}, {1, 14}, {2, 16}};
     Matrix<BigInteger> inputMatrix = toMatrix(rows);
     // define application (also works as a lambda expression)
     Application<Matrix<BigInteger>, ProtocolBuilderNumeric> app = root -> {
@@ -181,8 +188,9 @@ public class FrescoTutorial {
 
     // resource pool contains network
     ResourcePoolT resourcePool = util.getResourcePool();
-//    runSumAndSquareApp(sce, resourcePool);
-    runReactiveApp(sce, resourcePool);
+    runParallelMult(sce, resourcePool);
+    // runReactiveApp(sce, resourcePool);
+    // runAggApp(sce, resourcePool);
   }
 
 }

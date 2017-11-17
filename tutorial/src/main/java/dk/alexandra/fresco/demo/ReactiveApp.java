@@ -10,24 +10,8 @@ import dk.alexandra.fresco.framework.builder.numeric.Numeric;
 import dk.alexandra.fresco.framework.builder.numeric.ProtocolBuilderNumeric;
 import dk.alexandra.fresco.framework.value.SInt;
 
-/*
- * Here we define an example application. An application is parameterized with a return type
- * (BigInteger) and a builder type (ProtocolBuilderNumeric).
- * 
- * We could also define this as a lambda expression instead of a concrete class!
- * 
- */
 public class ReactiveApp implements Application<BigInteger, ProtocolBuilderNumeric> {
 
-  /*
-   * FRESCO will instantiate a new ProtocolBuilder of the type provided (ProtocolBuilderNumeric) and
-   * pass that to the buildComputation method of the Application.
-   * 
-   * Conceptually the builder is the FRESCO API. It holds all the Computations available in FRESCO
-   * (in the arithmetic setting).
-   * 
-   * In this application two parties each input a number which we sum, square, and output.
-   */
   @Override
   public DRes<BigInteger> buildComputation(ProtocolBuilderNumeric builder) {
     // who am I?
@@ -49,11 +33,16 @@ public class ReactiveApp implements Application<BigInteger, ProtocolBuilderNumer
     // equals
     DRes<SInt> equalsFlag = comparisonCompDir.equals(inputPartyOne, inputPartyTwo);
     DRes<BigInteger> openedEqualsFlag = numericCompDir.open(equalsFlag);
-    // this would break since the result has not been computed yet!
+    
+    // this would break since the result has not been computed in this computation scope!
     // BigInteger res = openedEqualsFlag.out();
-    // can only access value in sub-scope, otherwise it might be unavailable!
+
     return builder.seq((subBuilder) -> {
-      // this is safe, since we are in a sub-scope
+      /*
+       * This is safe, since we are in a subsequent computation scope and we won't reach this point
+       * until the previous computation is complete (i.e., all its native protocols have been
+       * evaluated).
+       */
       BigInteger unwrapped = openedEqualsFlag.out();
       if (unwrapped.equals(BigInteger.ONE)) {
         System.out.println("Inputs are equal! Will compute sum.");
