@@ -2,7 +2,6 @@ package dk.alexandra.fresco.suite.tinytables.prepro.datatypes;
 
 import dk.alexandra.fresco.framework.value.SBool;
 import dk.alexandra.fresco.suite.tinytables.datatypes.TinyTablesElement;
-import dk.alexandra.fresco.suite.tinytables.ot.Encoding;
 
 /**
  * This class represents a masked boolean value in the preprocessing phase of the TinyTables
@@ -24,14 +23,6 @@ public class TinyTablesPreproSBool implements SBool {
     // Not ready yet
   }
 
-  public byte[] getSerializableContent() {
-    return new byte[] {Encoding.encodeBoolean(value.getShare())};
-  }
-
-  public void setSerializableContent(byte[] val) {
-    setValue(new TinyTablesElement(Encoding.decodeBoolean(val[0])));
-  }
-
   /**
    * Get this players share of the mask <i>r</i> of the wire this SBool corresponds to.
    */
@@ -48,7 +39,7 @@ public class TinyTablesPreproSBool implements SBool {
 
   @Override
   public String toString() {
-    return "TinyTablePreproSBool [share=" + value + "]";
+    return "TinyTablesPreproSBool [value=" + value + "]";
   }
 
   @Override
