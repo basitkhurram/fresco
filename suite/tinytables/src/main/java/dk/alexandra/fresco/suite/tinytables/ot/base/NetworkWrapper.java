@@ -28,7 +28,6 @@ public class NetworkWrapper implements Channel {
 
   @Override
   public void close() {
-
   }
 
   @Override

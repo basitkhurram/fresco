@@ -12,14 +12,14 @@ import dk.alexandra.fresco.suite.tinytables.prepro.protocols.TinyTablesPreproXOR
  * <p>
  * This class represents an XOR protocol in the online phase of the TinyTables protocol.
  * </p>
- * 
+ *
  * <p>
  * During preprocessing (see {@link TinyTablesPreproXORProtocol}), each of the players let their
  * additive share of the mask of the output wire, <i>r<sub>O</sub></i>, be equal to the sum of their
  * shares of the input masks <i>r<sub>u</sub></i> and <i>r<sub>v</sub></i>, so <i>r<sub>O</sub> = r
  * <sub>u</sub> + r<sub>v</sub></i>.
  * </p>
- * 
+ *
  * <p>
  * Now, in the online phase, each player knows the masked input values <i>e<sub>u</sub> = b
  * <sub>u</sub> + r<sub>u</sub></i> and <i>e<sub>v</sub> = b<sub>v</sub> + r<sub>v</sub></i>, and
@@ -32,7 +32,7 @@ import dk.alexandra.fresco.suite.tinytables.prepro.protocols.TinyTablesPreproXOR
  * <p>
  * as desired.
  * </p>
- * 
+ *
  * @author Jonas Lindstrøm (jonas.lindstrom@alexandra.dk)
  *
  */
@@ -40,12 +40,6 @@ public class TinyTablesXORProtocol extends TinyTablesProtocol<SBool> {
 
   private DRes<SBool> inLeft, inRight;
   private TinyTablesSBool out;
-
-  public TinyTablesXORProtocol(DRes<SBool> inLeft, DRes<SBool> inRight) {
-    super();
-    this.inLeft = inLeft;
-    this.inRight = inRight;
-  }
 
   public TinyTablesXORProtocol(DRes<SBool> inLeft, DRes<SBool> inRight, SBool out) {
     super();

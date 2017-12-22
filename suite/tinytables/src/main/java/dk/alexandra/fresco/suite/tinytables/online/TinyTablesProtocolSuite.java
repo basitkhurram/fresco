@@ -4,6 +4,7 @@ import dk.alexandra.fresco.framework.BuilderFactory;
 import dk.alexandra.fresco.framework.builder.binary.ProtocolBuilderBinary;
 import dk.alexandra.fresco.framework.network.Network;
 import dk.alexandra.fresco.framework.sce.resources.ResourcePoolImpl;
+import dk.alexandra.fresco.framework.util.ExceptionConverter;
 import dk.alexandra.fresco.suite.ProtocolSuite;
 import dk.alexandra.fresco.suite.tinytables.online.protocols.TinyTablesANDProtocol;
 import dk.alexandra.fresco.suite.tinytables.online.protocols.TinyTablesCloseProtocol;
@@ -63,7 +64,6 @@ public class TinyTablesProtocolSuite
       Network network) {
     try {
       this.storage = loadTinyTables(tinyTablesFile);
-    } catch (ClassNotFoundException ignored) {
     } catch (IOException e) {
       logger.error("Failed to load TinyTables: " + e.getMessage());
     }
@@ -71,11 +71,12 @@ public class TinyTablesProtocolSuite
     return b;
   }
 
-  private TinyTablesStorage loadTinyTables(File file) throws IOException, ClassNotFoundException {
+  private TinyTablesStorage loadTinyTables(File file) throws IOException {
     FileInputStream fin = new FileInputStream(file);
     ObjectInputStream is = new ObjectInputStream(fin);
-    logger.info("Loading TinyTabels from " + file);
-    TinyTablesStorage storage = (TinyTablesStorage) is.readObject();
+    logger.info("Loading TinyTables from " + file);
+    TinyTablesStorage storage = ExceptionConverter.safe(() -> (TinyTablesStorage) is.readObject(),
+        "Could not find the class serialized as TinyTablesStorage");
     is.close();
     return storage;
   }

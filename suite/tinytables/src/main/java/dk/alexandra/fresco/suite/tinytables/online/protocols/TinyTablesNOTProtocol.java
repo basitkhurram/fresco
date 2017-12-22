@@ -29,9 +29,6 @@ public class TinyTablesNOTProtocol extends TinyTablesProtocol<SBool> {
   private DRes<SBool> in;
   private TinyTablesSBool out;
 
-  public TinyTablesNOTProtocol(DRes<SBool> in) {
-    this.in = in;
-  }
 
   public TinyTablesNOTProtocol(DRes<SBool> in, SBool out) {
     this.in = in;

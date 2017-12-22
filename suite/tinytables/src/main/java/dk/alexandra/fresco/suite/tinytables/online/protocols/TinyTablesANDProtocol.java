@@ -50,28 +50,28 @@ public class TinyTablesANDProtocol extends TinyTablesProtocol<SBool> {
     TinyTablesProtocolSuite ps = TinyTablesProtocolSuite.getInstance(resourcePool.getMyId());
 
     switch (round) {
-      case 0:
-        TinyTable tinyTable = ps.getStorage().getTinyTable(id);
-        if (tinyTable == null) {
-          throw new MPCException("Unable to find TinyTable for gate with id " + id);
-        }
-        TinyTablesElement myShare = tinyTable.getValue(((TinyTablesSBool) inLeft.out()).getValue(),
-            ((TinyTablesSBool) inRight.out()).getValue());
+    case 0:
+      TinyTable tinyTable = ps.getStorage().getTinyTable(id);
+      if (tinyTable == null) {
+        throw new MPCException("Unable to find TinyTable for gate with id " + id);
+      }
+      TinyTablesElement myShare = tinyTable.getValue(((TinyTablesSBool) inLeft.out()).getValue(),
+          ((TinyTablesSBool) inRight.out()).getValue());
 
-        network.sendToAll(new byte[]{BooleanSerializer.toBytes(myShare.getShare())});
-        return EvaluationStatus.HAS_MORE_ROUNDS;
-      case 1:
-        List<byte[]> buffers = network.receiveFromAll();
-        List<TinyTablesElement> shares = new ArrayList<>();
-        for (byte[] bytes : buffers) {
-          shares.add(new TinyTablesElement(BooleanSerializer.fromBytes(bytes[0])));
-        }
-        boolean open = TinyTablesElement.open(shares);
-        this.out = (out == null) ? new TinyTablesSBool() : out;
-        this.out.setValue(new TinyTablesElement(open));
-        return EvaluationStatus.IS_DONE;
-      default:
-        throw new MPCException("Cannot evaluate rounds larger than 0");
+      network.sendToAll(new byte[] { BooleanSerializer.toBytes(myShare.getShare()) });
+      return EvaluationStatus.HAS_MORE_ROUNDS;
+    case 1:
+      List<byte[]> buffers = network.receiveFromAll();
+      List<TinyTablesElement> shares = new ArrayList<>();
+      for (byte[] bytes : buffers) {
+        shares.add(new TinyTablesElement(BooleanSerializer.fromBytes(bytes[0])));
+      }
+      boolean open = TinyTablesElement.open(shares);
+      this.out = (out == null) ? new TinyTablesSBool() : out;
+      this.out.setValue(new TinyTablesElement(open));
+      return EvaluationStatus.IS_DONE;
+    default:
+      throw new MPCException("Cannot evaluate rounds larger than 1");
     }
   }
 

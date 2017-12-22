@@ -37,13 +37,12 @@ public class TinyTablesPreproBuilderFactory implements BuilderFactoryBinary {
 
       @Override
       public DRes<SBool> randomBit() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet");
       }
 
       @Override
       public DRes<Boolean> open(DRes<SBool> toOpen, int towardsPartyId) {
-        throw new RuntimeException("Not implemented yet");
+        throw new UnsupportedOperationException("Not implemented yet");
       }
 
       @Override

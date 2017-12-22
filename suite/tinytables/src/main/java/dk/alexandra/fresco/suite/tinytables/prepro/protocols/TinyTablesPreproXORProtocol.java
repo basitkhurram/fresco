@@ -26,12 +26,6 @@ public class TinyTablesPreproXORProtocol extends TinyTablesPreproProtocol<SBool>
   private DRes<SBool> inLeft, inRight;
   private TinyTablesPreproSBool out;
 
-  public TinyTablesPreproXORProtocol(DRes<SBool> inLeft, DRes<SBool> inRight) {
-    super();
-    this.inLeft = inLeft;
-    this.inRight = inRight;
-  }
-
   public TinyTablesPreproXORProtocol(DRes<SBool> inLeft, DRes<SBool> inRight,
       SBool out) {
     super();

@@ -20,6 +20,10 @@ public class TinyTablesTripleGenerator {
 
   public TinyTablesTripleGenerator(int playerId, SecureRandom random,
       OTFactory otFactory) {
+    if (playerId != 1 && playerId != 2) {
+      throw new IllegalArgumentException(
+          "The player ID must be either 1 or 2");
+    }
     this.playerId = playerId;
     this.random = random;
     this.otFactory = otFactory;
@@ -33,59 +37,54 @@ public class TinyTablesTripleGenerator {
 
     List<TinyTablesTriple> triples = new ArrayList<TinyTablesTriple>();
 
-    switch (playerId) {
-      case 1:
-        List<OTInput> otInputs = new ArrayList<OTInput>();
-        for (int i = 0; i < amount; i++) {
+    if (playerId == 1) {
+      List<OTInput> otInputs = new ArrayList<OTInput>();
+      for (int i = 0; i < amount; i++) {
 
-          // Pick random shares of a and b
-          boolean a = random.nextBoolean();
-          boolean b = random.nextBoolean();
+        // Pick random shares of a and b
+        boolean a = random.nextBoolean();
+        boolean b = random.nextBoolean();
 
-          // Masks for the OTs
-          boolean x = random.nextBoolean();
-          boolean y = random.nextBoolean();
+        // Masks for the OTs
+        boolean x = random.nextBoolean();
+        boolean y = random.nextBoolean();
 
-          otInputs.add(new OTInput(x, x ^ a));
-          otInputs.add(new OTInput(y, y ^ b));
+        otInputs.add(new OTInput(x, x ^ a));
+        otInputs.add(new OTInput(y, y ^ b));
 
-          boolean c = a & b ^ x ^ y;
+        boolean c = a & b ^ x ^ y;
 
-          triples.add(TinyTablesTriple.fromShares(a, b, c));
+        triples.add(TinyTablesTriple.fromShares(a, b, c));
 
-        }
+      }
 
-        OTSender sender = otFactory.createOTSender();
-        sender.send(otInputs);
-        break;
+      OTSender sender = otFactory.createOTSender();
+      sender.send(otInputs);
+    } else if (playerId == 2) {
+      List<OTSigma> otSigmas = new ArrayList<OTSigma>();
+      for (int i = 0; i < amount; i++) {
 
-      case 2:
-        List<OTSigma> otSigmas = new ArrayList<OTSigma>();
-        for (int i = 0; i < amount; i++) {
+        /*
+         * Pick random shares of a and b and use them for sigmas in the OT's:
+         */
+        boolean a = random.nextBoolean();
+        boolean b = random.nextBoolean();
+        otSigmas.add(new OTSigma(b));
+        otSigmas.add(new OTSigma(a));
 
-					/*
-					 * Pick random shares of a and b and use them for sigmas in
-					 * the OT's:
-					 */
-          boolean a = random.nextBoolean();
-          boolean b = random.nextBoolean();
-          otSigmas.add(new OTSigma(b));
-          otSigmas.add(new OTSigma(a));
+        // We don't know c until after we have done the OT's
+        triples.add(TinyTablesTriple.fromShares(a, b, false));
+      }
 
-          // We don't know c until after we have done the OT's
-          triples.add(TinyTablesTriple.fromShares(a, b, false));
-        }
+      OTReceiver receiver = otFactory.createOTReceiver();
+      List<BitSet> results = receiver.receive(otSigmas, 1);
 
-        OTReceiver receiver = otFactory.createOTReceiver();
-        List<BitSet> results = receiver.receive(otSigmas, 1);
-
-        for (int i = 0; i < amount; i++) {
-          boolean c = results.get(2 * i).get(0) ^ results.get(2 * i + 1).get(0)
-              ^ triples.get(i).getA().getShare() & triples.get(i).getB().getShare();
-          triples.get(i).setC(new TinyTablesElement(c));
-        }
-
-        break;
+      for (int i = 0; i < amount; i++) {
+        boolean c = results.get(2 * i).get(0) ^ results.get(2 * i + 1).get(0)
+            ^ triples.get(i).getA().getShare() & triples.get(i).getB()
+                .getShare();
+        triples.get(i).setC(new TinyTablesElement(c));
+      }
     }
     return triples;
   }

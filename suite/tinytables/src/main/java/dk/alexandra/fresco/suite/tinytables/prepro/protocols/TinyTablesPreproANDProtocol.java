@@ -46,10 +46,6 @@ public class TinyTablesPreproANDProtocol extends TinyTablesPreproProtocol<SBool>
     return (TinyTablesPreproSBool) inRight.out();
   }
 
-  public TinyTablesPreproSBool getOut() {
-    return out;
-  }
-
   @Override
   public SBool out() {
     return out;

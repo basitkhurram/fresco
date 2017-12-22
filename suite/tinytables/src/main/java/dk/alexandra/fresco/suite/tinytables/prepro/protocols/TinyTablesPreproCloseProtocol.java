@@ -31,12 +31,6 @@ public class TinyTablesPreproCloseProtocol extends TinyTablesPreproProtocol<SBoo
     this.inputter = inputter;
   }
 
-  public TinyTablesPreproCloseProtocol(int id, int inputter, SBool out) {
-    this.id = id;
-    this.inputter = inputter;
-    this.out = (TinyTablesPreproSBool) out;
-  }
-
   @Override
   public EvaluationStatus evaluate(int round, ResourcePoolImpl resourcePool, Network network) {
     TinyTablesPreproProtocolSuite ps =
