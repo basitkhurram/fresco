@@ -62,16 +62,25 @@ public class BristolOtReceiver {
       randomMessages = receiver.extend(choices);
       offset = 0;
     }
+    network.send(resources.getOtherId(), new byte[]{0x00});
+    byte[] messageZero = network.receive(resources.getOtherId());
+    byte[] messageOne = network.receive(resources.getOtherId());
+    offset++;
+    if (choiceBit) {
+      return messageOne.clone();
+    } else {
+      return messageZero.clone();
+    }
     // Notify the sender if it should switch the 0 and 1 messages around (s.t.
     // the random choice bit in the preprocessed random OTs matches the true
     // choice bit
-    sendSwitchBit(choiceBit);
-    // Receive the serialized adjusted messages
-    byte[] zeroAdjustment = network.receive(resources.getOtherId());
-    byte[] oneAdjustment = network.receive(resources.getOtherId());
-    byte[] res = doActualReceive(zeroAdjustment, oneAdjustment);
-    offset++;
-    return res;
+//    sendSwitchBit(choiceBit);
+//    // Receive the serialized adjusted messages
+//    byte[] zeroAdjustment = network.receive(resources.getOtherId());
+//    byte[] oneAdjustment = network.receive(resources.getOtherId());
+//    byte[] res = doActualReceive(zeroAdjustment, oneAdjustment);
+//    offset++;
+//    return res;
   }
 
   /**

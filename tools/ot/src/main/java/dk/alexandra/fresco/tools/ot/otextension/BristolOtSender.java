@@ -52,8 +52,12 @@ public class BristolOtSender {
       randomMessages = sender.extend(batchSize);
       offset = 0;
     }
-    doActualSend(messageZero, messageOne);
     offset++;
+    network.receive(resources.getOtherId());
+    network.send(resources.getOtherId(), messageZero);
+    network.send(resources.getOtherId(), messageOne);
+//    doActualSend(messageZero, messageOne);
+//    offset++;
   }
 
   /**
