@@ -58,8 +58,8 @@ public class BristolOtReceiver {
     // Check if there is still an unused random OT stored, if not, execute a
     // random OT extension
     if (offset < 0 || offset >= batchSize) {
-      choices = new StrictBitVector(batchSize, resources.getRandomGenerator());
-      randomMessages = receiver.extend(choices);
+//      choices = new StrictBitVector(batchSize, resources.getRandomGenerator());
+//      randomMessages = receiver.extend(choices);
       offset = 0;
     }
     network.send(resources.getOtherId(), new byte[]{0x00});

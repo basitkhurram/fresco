@@ -53,7 +53,8 @@ public class BristolOtFactory implements Ot {
   @Override
   public void send(StrictBitVector messageZero, StrictBitVector messageOne) {
     if (this.sender == null) {
-      RotSender sender = rot.createSender();
+//      RotSender sender = rot.createSender();
+      RotSender sender = null;
       this.sender = new BristolOtSender(sender, resources, network, batchSize);
     }
     this.sender.send(messageZero.toByteArray(), messageOne.toByteArray());
@@ -69,7 +70,8 @@ public class BristolOtFactory implements Ot {
   @Override
   public StrictBitVector receive(boolean choiceBit) {
     if (this.receiver == null) {
-      RotReceiver receiver = rot.createReceiver();
+//      RotReceiver receiver = rot.createReceiver();
+      RotReceiver receiver = null;
       this.receiver = new BristolOtReceiver(receiver, resources, network,
           batchSize);
     }

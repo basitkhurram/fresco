@@ -49,7 +49,7 @@ public class BristolOtSender {
     // Check if there is still an unused random OT stored, if not, execute a
     // random OT extension
     if (offset < 0 || offset >= batchSize) {
-      randomMessages = sender.extend(batchSize);
+//      randomMessages = sender.extend(batchSize);
       offset = 0;
     }
     offset++;
