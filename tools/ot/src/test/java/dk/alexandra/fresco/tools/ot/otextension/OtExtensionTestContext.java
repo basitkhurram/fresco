@@ -34,18 +34,19 @@ public class OtExtensionTestContext {
    */
   public OtExtensionTestContext(int myId, int otherId, int kbitLength,
       int lambdaSecurityParam) {
-    this.network = new CheatingNetworkDecorator(
-        new AsyncNetwork(RuntimeForTests.defaultNetworkConfiguration(myId, Arrays.asList(1, 2))));
+    // this.network = new CheatingNetworkDecorator(
+    //     new AsyncNetwork(RuntimeForTests.defaultNetworkConfiguration(myId, Arrays.asList(1, 2))));
+    this.network = new AsyncNetwork(RuntimeForTests.defaultNetworkConfiguration(myId, Arrays.asList(1, 2)));
     DummyOt dummyOt = new DummyOt(otherId, network);
     Drbg rand = new AesCtrDrbg(HelperForTests.seedOne);
     this.seedOts = new RotList(rand, kbitLength);
-    if (myId < otherId) {
-      this.seedOts.send(dummyOt);
-      this.seedOts.receive(dummyOt);
-    } else {
-      this.seedOts.receive(dummyOt);
-      this.seedOts.send(dummyOt);
-    }
+    // if (myId < otherId) {
+    //   this.seedOts.send(dummyOt);
+    //   this.seedOts.receive(dummyOt);
+    // } else {
+    //   this.seedOts.receive(dummyOt);
+    //   this.seedOts.send(dummyOt);
+    // }
     this.myId = myId;
     this.otherId = otherId;
     this.kbitLength = kbitLength;
