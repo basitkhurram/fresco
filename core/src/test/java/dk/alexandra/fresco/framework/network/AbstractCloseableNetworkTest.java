@@ -275,7 +275,7 @@ public abstract class AbstractCloseableNetworkTest {
 
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
   public void testAlternateReceivers() throws InterruptedException, ExecutionException {
-    alternateReceivers( 10000);
+    alternateReceivers( 10);
   }
 
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
