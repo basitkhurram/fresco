@@ -28,7 +28,6 @@ import org.junit.Test;
 
 /**
  * Abstracts tests for implementations of the {@link CloseableNetwork} interface.
- *
  */
 public abstract class AbstractCloseableNetworkTest {
 
@@ -50,7 +49,7 @@ public abstract class AbstractCloseableNetworkTest {
    *
    * @param conf a network configuration
    * @param timeout a duration in which to wait before timing out waiting for the network to be
-   *        connected.
+   * connected.
    * @return an implementation of CloseableNetwork to be tested
    */
   protected abstract CloseableNetwork newCloseableNetwork(NetworkConfiguration conf,
@@ -135,7 +134,7 @@ public abstract class AbstractCloseableNetworkTest {
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
   public void testSelfSendThreeParties() {
     networks = createNetworks(3);
-    networks.keySet().stream().forEach(i -> networks.get(i).send(i, new byte[] { 0x01 }));
+    networks.keySet().stream().forEach(i -> networks.get(i).send(i, new byte[]{0x01}));
     networks.keySet().stream().forEach(i -> networks.get(i).receive(i));
   }
 
@@ -143,7 +142,7 @@ public abstract class AbstractCloseableNetworkTest {
   public void testSendAfterClose() {
     networks = createNetworks(3);
     closeNetworks(networks);
-    networks.get(1).send(2, new byte[] {});
+    networks.get(1).send(2, new byte[]{});
   }
 
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS, expected = RuntimeException.class)
@@ -178,8 +177,6 @@ public abstract class AbstractCloseableNetworkTest {
    *
    * @param numParties the number of parties
    * @param numMessages the number of messages
-   * @throws ExecutionException
-   * @throws InterruptedException
    */
   private void sendMultipleToSingleReceiver(int numParties, int numMessages)
       throws InterruptedException, ExecutionException {
@@ -221,9 +218,62 @@ public abstract class AbstractCloseableNetworkTest {
     }
   }
 
+  private void alternateReceivers(int numMessages)
+      throws InterruptedException, ExecutionException {
+    int numParties = 2;
+    Map<Integer, CloseableNetwork> networks = createNetworks(numParties);
+    ExecutorService es = Executors.newFixedThreadPool(numParties);
+    List<Future<?>> fs = new ArrayList<>(numParties);
+
+    Future<?> taskOne = es.submit(() -> {
+      Random r = new Random(1);
+      final byte[] data = new byte[1024];
+      byte[] receivedData;
+      for (int j = 0; j < numMessages; j++) {
+        receivedData = networks.get(1).receive(2);
+        r.nextBytes(data);
+        networks.get(1).send(2, data);
+        assertArrayEquals(data, receivedData);
+      }
+      try {
+        networks.get(1).close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+    Future<?> taskTwo = es.submit(() -> {
+      Random r = new Random(1);
+      final byte[] data = new byte[1024];
+      byte[] receivedData;
+      for (int j = 0; j < numMessages; j++) {
+        r.nextBytes(data);
+        networks.get(2).send(1, data);
+        receivedData = networks.get(2).receive(1);
+        assertArrayEquals(data, receivedData);
+      }
+      try {
+        networks.get(2).close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+    fs.add(taskOne);
+    fs.add(taskTwo);
+    for (Future<?> future : fs) {
+      future.get();
+    }
+  }
+
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
   public void testManyPartiesSendToOneReceiver() throws InterruptedException, ExecutionException {
     sendMultipleToSingleReceiver(5, 100);
+  }
+
+  @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
+  public void testAlternateReceivers() throws InterruptedException, ExecutionException {
+    alternateReceivers( 10000);
   }
 
   @Test(timeout = TWO_MINUTE_TIMEOUT_MILLIS)
@@ -234,13 +284,13 @@ public abstract class AbstractCloseableNetworkTest {
   @Test(expected = IllegalArgumentException.class, timeout = TWO_MINUTE_TIMEOUT_MILLIS)
   public void testSendToNegativePartyId() {
     networks = createNetworks(1);
-    networks.get(1).send(-1, new byte[] { 0x01 });
+    networks.get(1).send(-1, new byte[]{0x01});
   }
 
   @Test(expected = IllegalArgumentException.class, timeout = TWO_MINUTE_TIMEOUT_MILLIS)
   public void testSendToTooLargePartyId() {
     networks = createNetworks(1);
-    networks.get(1).send(2, new byte[] { 0x01 });
+    networks.get(1).send(2, new byte[]{0x01});
   }
 
   @Test(expected = IllegalArgumentException.class, timeout = TWO_MINUTE_TIMEOUT_MILLIS)
